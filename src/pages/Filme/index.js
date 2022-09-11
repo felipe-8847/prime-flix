@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
 
 import './filme-info.css'
+
+import { toast } from 'react-toastify'
 
 
 
 function Filme(){
 
     const {id} = useParams();
+    const navigation = useNavigate()
     const [filme,setFilme] = useState({});
     const [loading, setLoading] = useState(true);
 
@@ -25,6 +28,8 @@ function Filme(){
                 setLoading(false);
             }).catch(()=>{
 
+                navigation("/", {replace: true})
+                return;
             })
         }
         loadFilme();
@@ -32,7 +37,24 @@ function Filme(){
         return()=>{
             console.log("desmontado")
         }
-    }, [])
+    }, [navigation,id])
+
+    function salvarFilme(){
+        const minhaLista = localStorage.getItem("@primeflix");
+
+        let filmesSalvos = JSON.parse(minhaLista) || [];
+
+        const hasFilme = filmesSalvos.some((filmesSalvos) => filmesSalvos.id === filme.id)
+
+        if(hasFilme){
+            toast.warn("ESSE FILME JA EXISTE");
+        }else{
+            filmesSalvos.push(filme);
+            localStorage.setItem("@primeflix", JSON.stringify(filmesSalvos))
+            toast.success("FILME SALVO COM SUCESSO")
+        }
+
+    }
 
     if(loading){
         return(
@@ -51,10 +73,10 @@ function Filme(){
             <span>Avaliação: {filme.vote_average} / 10</span>
       
             <div className='area-buttons'>
-                <button>Salvar</button>
+                <button onClick={salvarFilme}>Salvar</button>
 
                 <button>
-                    <a href='#'>
+                    <a target="blank" rel='external' href={`https://youtube.com/results?search_query=${filme.title} Trailer`}>
                         Trailer
                     </a>
                 </button>
